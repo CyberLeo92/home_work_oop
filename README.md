@@ -11,10 +11,6 @@
 
 [GitHub](https://github.com/CyberLeo92/home_work_oop)
 
-2. Установите зависимости:
-```
-pip install -r requirements.txt
-```
 
 ### Работа проекта:
 #### _Функции_:
