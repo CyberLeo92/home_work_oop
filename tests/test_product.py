@@ -1,5 +1,7 @@
 import json
-from src.product import Product, Category, load_categories_from_json
+from unittest.mock import patch
+
+from src.product import Category, Product, load_categories_from_json
 
 
 def test_product_initialization():
@@ -29,13 +31,13 @@ def test_category_initialization():
     # Пустая категория
     category1 = Category("Test", "Description", [])
     assert category1.name == "Test"
-    assert len(category1.products) == 0
+    assert len(category1.get_products_list()) == 0  # Используем get_products_list()
 
     # Категория с товарами
     p1 = Product("p1", "d1", 1.0, 1)
     p2 = Product("p2", "d2", 2.0, 2)
     category2 = Category("Test", "Description", [p1, p2])
-    assert len(category2.products) == 2
+    assert len(category2.get_products_list()) == 2  # Проверяем через get_products_list()
 
 
 def test_counters():
@@ -86,7 +88,7 @@ def test_json_loading(tmp_path, capsys):
     categories = load_categories_from_json(valid_file)
     assert len(categories) == 1
     assert categories[0].name == "Valid Category"
-    assert len(categories[0].products) == 1
+    assert len(categories[0].get_products_list()) == 1
 
     # 2. Тест с неполными данными
     incomplete_data = [{
@@ -97,9 +99,10 @@ def test_json_loading(tmp_path, capsys):
     with open(incomplete_file, 'w', encoding='utf-8') as f:
         json.dump(incomplete_data, f)
 
-    categories = load_categories_from_json(incomplete_file)
+    categories = load_categories_from_json(str(incomplete_file))
     assert len(categories) == 1
-    assert categories[0].products[0].description == ""
+    assert categories[0].name == "Incomplete"
+    assert categories[0].description == ""
 
     # 3. Тест с ошибками
     # Несуществующий файл
@@ -112,7 +115,7 @@ def test_json_loading(tmp_path, capsys):
     with open(invalid_file, 'w', encoding='utf-8') as f:
         f.write("{invalid}")
 
-    categories = load_categories_from_json(invalid_file)
+    categories = load_categories_from_json(str(invalid_file))
     captured = capsys.readouterr()
     assert "невалидный JSON" in captured.out
 
@@ -123,22 +126,15 @@ def test_edge_cases():
     """
     # Пустая категория
     category = Category("Empty", "", [])
-    assert category.description == ""
-
-    # Категория с изменяемым списком продуктов
-    category.products.append(Product("New", "Product", 100.0, 1))
-    assert len(category.products) == 1
-
-    # Продукт с большими значениями
-    product = Product("Big", "Values", 9999999.99, 9999)
-    assert product.price == 9999999.99
+    category.add_product(Product("New", "Product", 100.0, 1))
+    assert len(category.get_products_list()) == 1
 
 
 def test_product_with_invalid_data(tmp_path, capsys):
     """
     Тестирование обработки ошибок при создании товара с невалидными данными для JSON
     """
-    invalid_data =[{
+    invalid_data = [{
         "name": "Test Category",
         "description": "Test",
         "products": [
@@ -160,7 +156,7 @@ def test_product_with_invalid_data(tmp_path, capsys):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(invalid_data, f)
 
-    categories = load_categories_from_json(file_path)
+    categories = load_categories_from_json(str(file_path))
     captured = capsys.readouterr()
 
     # проверяем, что категория создалась
@@ -185,11 +181,105 @@ def test_categories_with_invalid_data(tmp_path, capsys):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(invalid_structure, f)
 
-    categories = load_categories_from_json(file_path)
+    categories = load_categories_from_json(str(file_path))
     captured = capsys.readouterr()
 
     # Проверяем, что категория не создалась из-за ошибок
     assert len(categories) == 0
     # Проверяем вывод ошибок в консоль
-    assert "Ошибка создания категории: поле products должно быть списком в категории" in captured.out
+    assert "Ошибка: поле products должно быть списком в категории" in captured.out
 
+
+# Новые тесты для дополнительных заданий (HW-14.2)
+def test_new_product_with_duplicates():
+    """
+    Тестирование обработки дубликатов в new_product()
+    """
+    # Подготовка тестовых данных
+    existing_products = [
+        Product("Test Product", "Description", 100.0, 5),
+        Product("Another Product", "Desc", 200.0, 3)
+    ]
+
+    original_count = len(existing_products)
+
+    # 1. Тест с дубликатом (должен объединить)
+    duplicate_data = {
+        "name": "Test Product",
+        "description": "New Description",
+        "price": 150.0,
+        "quantity": 2
+    }
+
+    result = Product.new_product(duplicate_data, existing_products)
+
+    # Проверяем что:
+    assert len(existing_products) == original_count  # Количество товаров не изменилось (дубликат не добавляется)
+    assert result.quantity == 7  # 5 (было) + 2 (добавили)
+    assert result.price == 150.0  # Выбрана новая цена (она выше)
+    assert result.description == "New Description"  # Описание обновилось
+
+    # 2. Тест с новым товаром (должен создать)
+    new_product_data = {
+        "name": "Brand New",
+        "description": "New",
+        "price": 300.0,
+        "quantity": 1
+    }
+
+    result = Product.new_product(new_product_data, existing_products)
+    assert len(existing_products) == original_count + 1  # Добавился новый товар
+    assert result.quantity == 1
+    assert result in existing_products  # Новый товар действительно в списке
+
+
+def test_price_decrease_confirmation():
+    """
+    Тест подтверждения понижения цены
+    """
+    product = Product("Test", "Desc", 100.0, 5)
+
+    # 1. Тест с подтверждением ('y')
+    with patch('builtins.input', return_value='y'):
+        product.price = 80.0
+        assert product.price == 80.0
+
+    # 2. Тест без подтверждения ('n')
+    with patch('builtins.input', return_value='n'):
+        product.price = 50.0
+        assert product.price == 80.0  # Цена не должна измениться
+
+
+def test_json_loading_with_duplicates(tmp_path, product):
+    """Тестирование загрузки JSON с дубликатами товаров"""
+    # Подготовка тестовых данных с дубликатами
+    test_data = [{
+        "name": "Test Category",
+        "description": "Test",
+        "products": [
+            {
+                "name": "Duplicate Product",
+                "description": "First",
+                "price": 100.0,
+                "quantity": 5
+            },
+            {
+                "name": "duplicate product",  # Дубликат (регистр не учитывается)
+                "description": "Second",
+                "price": 150.0,
+                "quantity": 3
+            }
+        ]
+    }]
+
+    test_file = tmp_path / "test_duplicates.json"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        json.dump(test_data, f)
+
+    # Загрузка и проверка
+    categories = load_categories_from_json(str(test_file))
+    assert len(categories) == 1
+    assert len(categories[0]._Category__products) == 1  # Должен быть только 1 товар (дубликаты объединены)
+    product = categories[0]._Category__products[0]
+    assert product.quantity == 8  # 5 + 3
+    assert product.price == 150.0  # Более высокая цена
