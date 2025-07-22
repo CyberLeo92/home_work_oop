@@ -1,6 +1,8 @@
 import json
 from unittest.mock import patch
 
+import pytest
+
 from src.product import Category, Product, load_categories_from_json
 
 
@@ -85,7 +87,7 @@ def test_json_loading(tmp_path, capsys):
     with open(valid_file, 'w', encoding='utf-8') as f:
         json.dump(valid_data, f)
 
-    categories = load_categories_from_json(valid_file)
+    categories = load_categories_from_json(str(valid_file))
     assert len(categories) == 1
     assert categories[0].name == "Valid Category"
     assert len(categories[0].get_products_list()) == 1
@@ -279,7 +281,51 @@ def test_json_loading_with_duplicates(tmp_path, product):
     # Загрузка и проверка
     categories = load_categories_from_json(str(test_file))
     assert len(categories) == 1
-    assert len(categories[0]._Category__products) == 1  # Должен быть только 1 товар (дубликаты объединены)
-    product = categories[0]._Category__products[0]
+    products = categories[0].get_products_list()
+    assert len(products) == 1
+    product = products[0]
     assert product.quantity == 8  # 5 + 3
     assert product.price == 150.0  # Более высокая цена
+
+
+def test_product_str():
+    product = Product("Телефон", "Смартфон", 50000.0, 10)
+    assert str(product) == "Телефон, 50000.0 руб. Остаток: 10 шт"
+
+
+def test_category_str():
+    products = [Product("Товар1", "Описание", 100.0, 5)]
+    category = Category("Категория", "Описание", products)
+    assert str(category) == "Категория, количество продуктов: 1 шт."
+
+
+def test_product_addition():
+    p1 = Product("Товар1", "Описание", 100.0, 2)
+    p2 = Product("Товар2", "Описание", 200.0, 3)
+    assert p1 + p2 == 100 * 2 + 200 * 3
+
+
+def test_invalid_product_addition():
+    p1 = Product("Товар", "Описание", 100.0, 1)
+    with pytest.raises(TypeError, match="Можно складывать только объекты Product"):
+        p1 + 100  # Попытка сложить с числом
+
+
+# Тесты для итератора:
+def test_category_iterator(product):
+    products = [
+        Product("Товар1", "Описание", 100.0, 1),
+        Product("Товар2", "Описание", 200.0, 2)
+    ]
+    category = Category("Категория", "Описание", products)
+
+    # Проверка работы в цикле for
+    for i, product in enumerate(category):
+        assert product == products[i]
+
+    # Проверка ручного использования итератора
+    iterator = iter(category)
+    assert next(iterator) == products[0]
+    assert next(iterator) == products[1]
+    with pytest.raises(StopIteration):
+        next(iterator)
