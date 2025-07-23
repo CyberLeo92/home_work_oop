@@ -14,6 +14,14 @@ class Product:
         self.__price = price
         self.quantity = quantity
 
+    def __str__(self):
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт"
+
+    def __add__(self, other):
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты Product")
+        return (self.price * self.quantity) + (other.price * other.quantity)
+
     @property
     def price(self):
         return self.__price
@@ -70,6 +78,27 @@ class Product:
         return created_product
 
 
+class CategoryIterator:
+    """
+    Итератор по товарам категории
+    """
+
+    def __init__(self, category: 'Category') -> None:
+        self.category = category
+        self.index = 0
+
+    def __iter__(self) -> 'CategoryIterator':
+        return self
+
+    def __next__(self) -> 'Product':
+        products = self.category.get_products_list()
+        if self.index < len(products):
+            product = products[self.index]
+            self.index += 1
+            return product
+        raise StopIteration
+
+
 class Category:
     name: str
     description: str
@@ -79,7 +108,6 @@ class Category:
     product_count = 0
 
     def __init__(self, name, description, products) -> None:
-        self._Category__products = None  # тестирование предложило добавить None, обратить внимание
         self.name = name
         self.description = description
         self.__products = products if products else []
@@ -88,11 +116,15 @@ class Category:
         Category.category_count += 1
         Category.product_count += len(products) if products else 0
 
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
     @property
     def products(self):
         products_str = ""
         for product in self.__products:
-            products_str += f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.\n"
+            products_str += f"{str(product)}\n"
         return products_str
 
     def add_product(self, product):
@@ -101,6 +133,9 @@ class Category:
 
     def get_products_list(self) -> List[Product]:
         return self.__products
+
+    def __iter__(self) -> CategoryIterator:
+        return CategoryIterator(self)
 
 
 def load_categories_from_json(file_path: str) -> list[Category]:
@@ -170,102 +205,26 @@ def load_categories_from_json(file_path: str) -> list[Category]:
 
     return categories
 
-# if __name__ == "__main__":
-#     product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
-#     product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
-#     product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
-#
-#     # Создаем список существующих товаров для проверки дубликатов
-#     existing_products = [product1, product2, product3]
-#
-#     category1 = Category(
-#         "Смартфоны",
-#         "Смартфоны, как средство не только коммуникации, но и получения дополнительных функций для удобства жизни",
-#         existing_products.copy()  # Используем копию, чтобы не менять исходный список
-#     )
-#
-#     print(category1.products)
-#     product4 = Product("55\" QLED 4K", "Фоновая подсветка", 123000.0, 7)
-#     category1.add_product(product4)
-#     print(category1.products)
-#     print(f"Общее количество товаров: {Category.product_count}")
-#
-#     # Теперь передаем existing_products при создании нового товара
-#     new_product = Product.new_product(
-#         {"name": "Samsung Galaxy S23 Ultra",
-#          "description": "256GB, Серый цвет, 200MP камера",
-#          "price": 180000.0,
-#          "quantity": 5},
-#         products_list=existing_products  # Добавляем этот аргумент
-#     )
-#
-#     print("\nИнформация о товаре после создания/объединения:")
-#     print(f"Название: {new_product.name}")
-#     print(f"Описание: {new_product.description}")
-#     print(f"Цена: {new_product.price}")
-#     print(f"Количество: {new_product.quantity}")
-#
-#     # Тестирование изменения цены
-#     print("\nТестирование изменения цены:")
-#     new_product.price = 800  # Должно запросить подтверждение если цена понижается
-#     print(f"Новая цена: {new_product.price}")
-#
-#     new_product.price = -100  # Должно отклонить
-#     print(f"Попытка установить отрицательную цену. Текущая цена: {new_product.price}")
-#
-#     new_product.price = 0  # Должно отклонить
-#     print(f"Попытка установить нулевую цену. Текущая цена: {new_product.price}")
-#
-#     # Далее тесты для дополнительного задания №3 и №4
-#     # Тест объединения дубликатов товаров
-#     print("\n=== Тест объединения дубликатов ===")
-#
-#     # Создаем список существующих товаров
-#     existing_products = [
-#         Product("iPhone 15", "512GB, Gray", 210000.0, 3),
-#         Product("Samsung S23", "256GB, Black", 180000.0, 5)
-#     ]
-#
-#     # Выводим исходные товары
-#     print("\nИсходные товары:")
-#     for p in existing_products:
-#         print(f"{p.name}: {p.quantity} шт. по {p.price} руб.")
-#
-#     # Создаем "новый" товар (на самом деле дубликат)
-#     duplicate_data = {
-#         "name": "iPhone 15",
-#         "description": "512GB, Space Gray",
-#         "price": 200000.0,  # Цена ниже существующей
-#         "quantity": 2  # Добавляемое количество
-#     }
-#
-#     # Пытаемся создать "новый" товар
-#     print("\nПробуем добавить дубликат iPhone 15...")
-#     updated_product = Product.new_product(duplicate_data, existing_products)
-#
-#     # Проверяем результат
-#     print("\nРезультат после объединения:")
-#     for p in existing_products:
-#         print(f"{p.name}: {p.quantity} шт. по {p.price} руб.")
-#
-#     # Тест подтверждения снижения цены
-#     print("\n=== Тест изменения цены ===")
-#
-#     test_product = Product("Тестовый товар", "Для проверки", 1000.0, 10)
-#     print(f"\nИсходная цена: {test_product.price} руб.")
-#
-#     # Пробуем повысить цену (должно сработать без подтверждения)
-#     print("\nПробуем повысить цену до 1200...")
-#     test_product.price = 1200
-#     print(f"Новая цена: {test_product.price} руб.")
-#
-#     # Пробуем понизить цену (запросит подтверждение)
-#     print("\nПробуем понизить цену до 800...")
-#     print("(Введите 'y' для подтверждения или любой другой символ для отмены)")
-#     test_product.price = 800
-#     print(f"Текущая цена: {test_product.price} руб.")  # Будет 1200 или 800 в зависимости от ввода
-#
-#     # Пробуем установить недопустимую цену
-#     print("\nПробуем установить отрицательную цену...")
-#     test_product.price = -500
-#     print(f"Текущая цена: {test_product.price} руб.")  # Должна остаться предыдущая
+
+if __name__ == '__main__':
+    product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
+    product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
+    product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
+
+    print(str(product1))
+    print(str(product2))
+    print(str(product3))
+
+    category1 = Category(
+        "Смартфоны",
+        "Смартфоны, как средство не только коммуникации, но и получения дополнительных функций для удобства жизни",
+        [product1, product2, product3]
+    )
+
+    print(str(category1))
+
+    print(category1.products)
+
+    print(product1 + product2)
+    print(product1 + product3)
+    print(product2 + product3)
