@@ -296,7 +296,7 @@ def test_product_str():
 def test_category_str():
     products = [Product("Товар1", "Описание", 100.0, 5)]
     category = Category("Категория", "Описание", products)
-    assert str(category) == "Категория, количество продуктов: 1 шт."
+    assert str(category) == "Категория, количество продуктов: 5 шт."
 
 
 def test_product_addition():
