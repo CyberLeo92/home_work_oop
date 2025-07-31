@@ -1,6 +1,7 @@
 import pytest
 
-from src.product import Product, Category
+from src.product import Product
+from src.category import Category
 
 
 @pytest.fixture
@@ -13,7 +14,7 @@ def category():
     return Category(name="Категория", description="Описание категории", products=[])
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)  # autouse - это автоматический сброс счетчиков перед каждым тестом.
 def reset_category_counters():
     Category.category_count = 0
     Category.product_count = 0
