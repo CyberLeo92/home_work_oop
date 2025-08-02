@@ -15,7 +15,7 @@ class Product:
 
     def __add__(self, other: "Product") -> float:
         if not isinstance(other, Product):
-            raise TypeError("Можно складывать только объекты Product")
+            raise TypeError("Можно складывать только объекты Product")  # с помощью комментария увидим, где ошибка
         return (self.price * self.quantity) + (other.price * other.quantity)
 
     @property
@@ -34,7 +34,8 @@ class Product:
             if new_price < current_price:
                 confirmation = input(
                     f"Цена понижается с {current_price} до {new_price}."
-                    f"Если хотите понизить цену введите 'y', либо вернуть текущую цену 'n': ")
+                    f"Если хотите понизить цену введите 'y', либо вернуть текущую цену 'n': "
+                )
                 if confirmation.lower() != "y":
                     print("Изменение цены отменено")
                     return
@@ -72,3 +73,40 @@ class Product:
         created_product = cls(name, description, price, quantity)
         products_list.append(created_product)  # Добавляем новый товар в список
         return created_product
+
+
+class Smartphone(Product):
+    """
+    Класс наследник "Смартфон" класса Product
+    """
+
+    def __init__(
+        self, name, description, price, quantity, efficiency: float, model: str, memory: int, color: str
+    ) -> None:
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+    def __add__(self, other):
+        if isinstance(other, Smartphone):
+            return (self.price * self.quantity) + (other.price * other.quantity)
+        raise TypeError("Можно складывать только объекты Smartphone")  # с помощью комментария увидим, где ошибка
+
+
+class LawnGrass(Product):
+    """
+    Класс наследник "Трава газонная" класса Product
+    """
+
+    def __init__(self, name, description, price, quantity, country: str, germination_period: str, color: str) -> None:
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
+
+    def __add__(self, other):
+        if type(other) is LawnGrass:
+            return (self.price * self.quantity) + (other.price * other.quantity)
+        raise TypeError("Можно складывать только объекты LawnGrass")  # с помощью комментария увидим, где ошибка
