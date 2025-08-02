@@ -8,18 +8,15 @@ def test_json_loading(tmp_path, capsys):
     Тестирование загрузки данных из JSON
     """
     # 1. Тест с корректными данными
-    valid_data = [{
-        "name": "Valid Category",
-        "description": "Description",
-        "products": [{
-            "name": "Product1",
-            "description": "Desc1",
-            "price": 100.0,
-            "quantity": 5
-        }]
-    }]
+    valid_data = [
+        {
+            "name": "Valid Category",
+            "description": "Description",
+            "products": [{"name": "Product1", "description": "Desc1", "price": 100.0, "quantity": 5}],
+        }
+    ]
     valid_file = tmp_path / "valid.json"
-    with open(valid_file, 'w', encoding='utf-8') as f:
+    with open(valid_file, "w", encoding="utf-8") as f:
         json.dump(valid_data, f)
 
     categories = load_categories_from_json(str(valid_file))
@@ -28,12 +25,9 @@ def test_json_loading(tmp_path, capsys):
     assert len(categories[0].get_products_list()) == 1
 
     # 2. Тест с неполными данными
-    incomplete_data = [{
-        "name": "Incomplete",
-        "products": [{"name": "Product"}]
-    }]
+    incomplete_data = [{"name": "Incomplete", "products": [{"name": "Product"}]}]
     incomplete_file = tmp_path / "incomplete.json"
-    with open(incomplete_file, 'w', encoding='utf-8') as f:
+    with open(incomplete_file, "w", encoding="utf-8") as f:
         json.dump(incomplete_data, f)
 
     categories = load_categories_from_json(str(incomplete_file))
@@ -49,7 +43,7 @@ def test_json_loading(tmp_path, capsys):
 
     # Невалидный JSON
     invalid_file = tmp_path / "invalid.json"
-    with open(invalid_file, 'w', encoding='utf-8') as f:
+    with open(invalid_file, "w", encoding="utf-8") as f:
         f.write("{invalid}")
 
     categories = load_categories_from_json(str(invalid_file))
@@ -61,26 +55,23 @@ def test_product_with_invalid_data(tmp_path, capsys):
     """
     Тестирование обработки ошибок при создании товара с невалидными данными для JSON
     """
-    invalid_data = [{
-        "name": "Test Category",
-        "description": "Test",
-        "products": [
-            {
-                "name": 123123123123,  # неправильный тип, который обрабатываем
-                "description": "Desc",
-                "price": "миллион",  # Не число
-                "quantity": 5
-            },
-            {
-                "name": "Valid Product",
-                "description": "Desc",
-                "price": 100.0,
-                "quantity": "пять"  # Не число
-            }
-        ]
-    }]
+    invalid_data = [
+        {
+            "name": "Test Category",
+            "description": "Test",
+            "products": [
+                {
+                    "name": 123123123123,  # неправильный тип, который обрабатываем
+                    "description": "Desc",
+                    "price": "миллион",  # Не число
+                    "quantity": 5,
+                },
+                {"name": "Valid Product", "description": "Desc", "price": 100.0, "quantity": "пять"},  # Не число
+            ],
+        }
+    ]
     file_path = tmp_path / "invalid_products.json"
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(invalid_data, f)
 
     categories = load_categories_from_json(str(file_path))
@@ -98,14 +89,16 @@ def test_categories_with_invalid_data(tmp_path, capsys):
     """
     Тест для некорректной структуре данных
     """
-    invalid_structure = [{
-        "name": ["Test"],  # Неправильный тип для имени
-        "description": 123541234,  # Неправильный тип для описания
-        "products": "not list"  # Не список
-    }]
+    invalid_structure = [
+        {
+            "name": ["Test"],  # Неправильный тип для имени
+            "description": 123541234,  # Неправильный тип для описания
+            "products": "not list",  # Не список
+        }
+    ]
 
     file_path = tmp_path / "invalid_category.json"
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(invalid_structure, f)
 
     categories = load_categories_from_json(str(file_path))
@@ -120,27 +113,24 @@ def test_categories_with_invalid_data(tmp_path, capsys):
 def test_json_loading_with_duplicates(tmp_path):
     """Тестирование загрузки JSON с дубликатами товаров"""
     # Подготовка тестовых данных с дубликатами
-    test_data = [{
-        "name": "Test Category",
-        "description": "Test",
-        "products": [
-            {
-                "name": "Duplicate Product",
-                "description": "First",
-                "price": 100.0,
-                "quantity": 5
-            },
-            {
-                "name": "duplicate product",  # Дубликат (регистр не учитывается)
-                "description": "Second",
-                "price": 150.0,
-                "quantity": 3
-            }
-        ]
-    }]
+    test_data = [
+        {
+            "name": "Test Category",
+            "description": "Test",
+            "products": [
+                {"name": "Duplicate Product", "description": "First", "price": 100.0, "quantity": 5},
+                {
+                    "name": "duplicate product",  # Дубликат (регистр не учитывается)
+                    "description": "Second",
+                    "price": 150.0,
+                    "quantity": 3,
+                },
+            ],
+        }
+    ]
 
     test_file = tmp_path / "test_duplicates.json"
-    with open(test_file, 'w', encoding='utf-8') as f:
+    with open(test_file, "w", encoding="utf-8") as f:
         json.dump(test_data, f)
 
     # Загрузка и проверка
