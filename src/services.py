@@ -1,7 +1,7 @@
 import json
 
 from src.category import Category
-from src.product import Product
+from src.product import Product, Smartphone, LawnGrass
 
 
 def load_categories_from_json(file_path: str) -> list[Category]:
@@ -45,10 +45,7 @@ def load_categories_from_json(file_path: str) -> list[Category]:
                     product_data.setdefault('price', 0.0)
                     product_data.setdefault('quantity', 0)
 
-                    product = Product.new_product(
-                        product_data,
-                        products_list=products
-                    )
+                    product = Product.new_product(product_data, products_list=products)
 
                     if product not in products:
                         products.append(product)
