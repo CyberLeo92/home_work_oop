@@ -63,10 +63,8 @@ def test_category_str():
 
 
 def test_category_iterator():
-    products = [
-        Product("Товар1", "Описание", 100.0, 1),
-        Product("Товар2", "Описание", 200.0, 2)
-    ]
+    products = [Product("Товар1", "Описание", 100.0, 1),
+                Product("Товар2", "Описание", 200.0, 2)]
     category = Category("Категория", "Описание", products)
 
     # Проверка работы в цикле for
