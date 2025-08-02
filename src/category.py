@@ -8,14 +8,14 @@ class CategoryIterator:
     Итератор по товарам категории
     """
 
-    def __init__(self, category: 'Category') -> None:
+    def __init__(self, category: "Category") -> None:
         self.category = category
         self.index = 0
 
-    def __iter__(self) -> 'CategoryIterator':
+    def __iter__(self) -> "CategoryIterator":
         return self
 
-    def __next__(self) -> 'Product':
+    def __next__(self) -> "Product":
         products = self.category.get_products_list()
         if self.index < len(products):
             product = products[self.index]
@@ -53,8 +53,11 @@ class Category:
         return products_str
 
     def add_product(self, product):
-        self.__products.append(product)
-        self.__products_count += 1  # Увеличиваем счетчик этой категории
+        if isinstance(product, Product):
+            self.__products.append(product)
+            self.__products_count += 1  # Увеличиваем счетчик этой категории
+        else:
+            raise TypeError("Можно добавлять только объекты Product или его наследников")
 
     def get_products_list(self) -> list[Product]:
         return self.__products
