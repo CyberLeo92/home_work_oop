@@ -90,7 +90,7 @@ class Smartphone(Product):
         self.color = color
 
     def __add__(self, other):
-        if isinstance(other, Smartphone):
+        if type(other) is Smartphone:
             return (self.price * self.quantity) + (other.price * other.quantity)
         raise TypeError("Можно складывать только объекты Smartphone")  # с помощью комментария увидим, где ошибка
 
