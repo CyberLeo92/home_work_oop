@@ -1,7 +1,7 @@
 import json
 
 from src.category import Category
-from src.product import Product, Smartphone, LawnGrass
+from src.product import Product
 
 
 def load_categories_from_json(file_path: str) -> list[Category]:
@@ -10,7 +10,7 @@ def load_categories_from_json(file_path: str) -> list[Category]:
     и создает соответствующие объекты классов с проверкой дубликатов товаров
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
     except FileNotFoundError:
         print(f"Ошибка: Файл {file_path} не найден")
@@ -23,12 +23,12 @@ def load_categories_from_json(file_path: str) -> list[Category]:
     for category_data in data:
         try:
             # Обработка данных категории с установкой значений по умолчанию
-            name = category_data.get('name', 'Без названия')
-            description = category_data.get('description', '')  # Пустая строка по умолчанию
+            name = category_data.get("name", "Без названия")
+            description = category_data.get("description", "")  # Пустая строка по умолчанию
 
             # Подготовка списка товаров с проверкой дубликатов
             products = []
-            products_data = category_data.get('products', [])
+            products_data = category_data.get("products", [])
 
             if not isinstance(products_data, list):
                 print(f"Ошибка: поле products должно быть списком в категории '{name}'")
@@ -41,9 +41,9 @@ def load_categories_from_json(file_path: str) -> list[Category]:
                         continue
 
                     # Устанавливаем значения по умолчанию для товара
-                    product_data.setdefault('description', '')
-                    product_data.setdefault('price', 0.0)
-                    product_data.setdefault('quantity', 0)
+                    product_data.setdefault("description", "")
+                    product_data.setdefault("price", 0.0)
+                    product_data.setdefault("quantity", 0)
 
                     product = Product.new_product(product_data, products_list=products)
 
@@ -55,11 +55,7 @@ def load_categories_from_json(file_path: str) -> list[Category]:
                     continue
 
             # Создаем категорию даже с неполными данными
-            category = Category(
-                name=str(name),
-                description=str(description),
-                products=products
-            )
+            category = Category(name=str(name), description=str(description), products=products)
             categories.append(category)
 
         except Exception as e:
