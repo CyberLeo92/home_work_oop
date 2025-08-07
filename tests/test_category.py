@@ -63,8 +63,7 @@ def test_category_str():
 
 
 def test_category_iterator():
-    products = [Product("Товар1", "Описание", 100.0, 1),
-                Product("Товар2", "Описание", 200.0, 2)]
+    products = [Product("Товар1", "Описание", 100.0, 1), Product("Товар2", "Описание", 200.0, 2)]
     category = Category("Категория", "Описание", products)
 
     # Проверка работы в цикле for
@@ -77,3 +76,41 @@ def test_category_iterator():
     assert next(iterator) == products[1]
     with pytest.raises(StopIteration):
         next(iterator)
+
+
+def test_middle_price_with_products(category, product):
+    """
+    Тест расчета средней цены с товарами
+    """
+    category.add_product(product)
+    assert category.middle_price() == product.price
+
+
+def test_middle_price_empty_category(category):
+    """
+    Тест расчета средней цены пустой категории
+    """
+    assert category.middle_price() == 0
+
+
+def test_middle_price_zero_price(zero_price_category):
+    """
+    Тест расчета средней цены с товаром с нулевой ценой
+    """
+    assert zero_price_category.middle_price() == 0
+
+
+def test_middle_price_multiple_products(category, product):
+    """
+    Тест расчета средней цены с несколькими товарами
+    """
+    product2 = Product("Тест2", "Описание", 200.0, 5)
+    category.add_product(product)
+    category.add_product(product2)
+    assert category.middle_price() == (product.price + product2.price) / 2
+
+
+def test_middle_price_with_single_product(category, product):
+    """Тест средней цены с одним товаром"""
+    category.add_product(product)
+    assert category.middle_price() == product.price
