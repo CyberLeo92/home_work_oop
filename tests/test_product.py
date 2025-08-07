@@ -17,9 +17,11 @@ def test_product_initialization():
     assert product1.quantity == 5
 
     # Граничные случаи
-    product2 = Product("", "Empty name", 0.0, 0)
+    # Граничные случаи (исключая quantity=0)
+    product2 = Product("", "Empty name", 0.0, 1)  # Изменили quantity с 0 на 1
     assert product2.name == ""
     assert product2.price == 0.0
+    assert product2.quantity == 1
 
     product3 = Product("Negative", "Test", -50.0, 10)
     assert product3.price == -50.0
@@ -167,3 +169,19 @@ def test_add_invalid_product_to_category(category):
     """
     with pytest.raises(TypeError):
         category.add_product("Not a product")
+
+
+def test_product_with_zero_quantity():
+    """
+    Тест создания продукта с нулевым количеством
+    """
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Тест", "Описание", 100.0, 0)
+
+
+def test_new_product_with_zero_quantity():
+    """
+    Тест создания продукта через new_product с нулевым количеством
+    """
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product.new_product({"name": "Тест", "description": "Описание", "price": "100.0", "quantity": "0"}, [])
