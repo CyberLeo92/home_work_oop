@@ -45,3 +45,33 @@ def lawn_grass():
         germination_period="7 дней",
         color="Green",
     )
+
+
+@pytest.fixture
+def sample_products():
+    return [
+        Product("Товар1", "Описание1", 100.0, 5),
+        Product("Товар2", "Описание2", 200.0, 3),
+        Product("Товар3", "Описание3", 300.0, 2),
+    ]
+
+
+@pytest.fixture
+def category_with_products(category, sample_products):
+    for product in sample_products:
+        category.add_product(product)
+    return category
+
+
+@pytest.fixture
+def zero_price_category():
+    return Category(
+        name="Смартфоны",
+        description="Смартфоны, как средство не только коммуникации",
+        products=[Product("Iphone 15", "512GB, Gray space", 0, 8)],
+    )
+
+
+@pytest.fixture
+def zero_products_category():
+    return Category(name="Смартфоны", description="Смартфоны, как средство не только коммуникации", products=None)
